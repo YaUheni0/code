@@ -1,0 +1,40 @@
+import logging
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+
+# Настроим логирование
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+
+# Функция для команды /start
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text('Привет! Я ваш чат-бот. Введите /time чтобы узнать текущее время или /exchange чтобы узнать курс рубля к доллару.')
+
+# Функция для команды /time
+async def time(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    from datetime import datetime
+    now = datetime.now()
+    current_time = now.strftime("%H:%M:%S")
+    await update.message.reply_text(f'Текущее время: {current_time}')
+
+# Функция для команды /exchange
+async def exchange(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    import requests
+    response = requests.get('https://api.exchangerate-api.com/v4/latest/RUB')
+    data = response.json()
+    rate = data['rates']['USD']
+    await update.message.reply_text(f'Курс рубля к доллару: 1 RUB = {rate} USD')
+
+def main() -> None:
+    application = ApplicationBuilder().token(" TELEGRAM TOKEN ").build()
+
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("time", time))
+    application.add_handler(CommandHandler("exchange", exchange))
+
+    application.run_polling()
+
+if __name__ == '__main__':
+    main()
